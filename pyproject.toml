@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "pluto"
+version = "0.1.0"
+description = "✨ Lightweight reactive notebooks for Python"
+authors = ["malyvsen"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.4.3"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
