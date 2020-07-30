@@ -39,20 +39,23 @@ class VariableAccess:
             bases = cls.from_ast(ast_node.bases)
             keywords = cls.from_ast(ast_node.keywords)
             decorators = cls.from_ast(ast_node.decorator_list)
-            body = cls.from_ast(ast_node.body) # TODO: name shadowing
+            body = cls.from_ast(ast_node.body) # no name shadowing because of "if x: y = 10"
             return cls(
                 reads=bases.reads | keywords.reads | decorators.reads | body.reads,
                 writes=[ast_node.name]
             )
         
         if isinstance(ast_node, ast.Lambda):
-            return cls.from_ast(ast_node.body) # TODO: name shadowing
+            arguments = cls.from_ast(ast_node.args)
+            body = cls.from_ast(ast_node.body)
+            return cls(reads=arguments.reads | (body.reads - arguments.writes), writes=[])
         if isinstance(ast_node, ast.FunctionDef):
             decorators = cls.from_ast(ast_node.decorator_list)
-            args = cls.from_ast(ast_node.args) # can read variables via default values
+            arguments = cls.from_ast(ast_node.args)
             body = cls.from_ast(ast_node.body)
-            # TODO: name shadowing - some reads and writes in body refer to local, not global variables
-            return cls(reads=decorators.reads | args.reads | body.reads, writes=[ast_node.name])
+            return cls(reads=decorators.reads | arguments.reads | (body.reads - arguments.writes), writes=[ast_node.name])
+        if isinstance(ast_node, ast.arg):
+            return cls(reads=[], writes=[ast_node.arg])
 
         if isinstance(ast_node, ast.For):
             target = cls.from_ast(ast_node.target) # no name shadowing - target is actually written to
@@ -117,7 +120,7 @@ node_children = {
     ast.Module: ['body'],
     ast.Import: ['names'],
     ast.Attribute: ['value'],
-    ast.arguments: ['defaults', 'kw_defaults'],
+    ast.arguments: ['posonlyargs', 'args', 'vararg', 'kwonlyargs', 'kwarg', 'defaults', 'kw_defaults'],
     ast.Return: ['value'],
     ast.Call: ['func', 'args', 'keywords'],
     ast.keyword: ['value'],
