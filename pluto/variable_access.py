@@ -48,9 +48,11 @@ class VariableAccess:
         if isinstance(ast_node, ast.Import):
             return cls.from_ast(ast_node.names)
         if isinstance(ast_node, ast.ImportFrom):
+            if ast_node.names[0].name == '*':
+                raise NotImplementedError('"import *" is not supported yet!')
             return cls.from_ast(ast_node.names)
         if isinstance(ast_node, ast.alias):
-            return cls(reads=[], writes=[ast_node.asname])
+            return cls(reads=[], writes=[ast_node.asname or ast_node.name])
         
         if isinstance(ast_node, ast.ClassDef):
             bases = cls.from_ast(ast_node.bases)
@@ -86,6 +88,11 @@ class VariableAccess:
             return cls.from_ast(ast_node.value)
         
         if isinstance(ast_node, ast.If):
+            condition = cls.from_ast(ast_node.test)
+            body = cls.from_ast(ast_node.body)
+            else_body = cls.from_ast(ast_node.orelse) # elif is syntax sugar for else (if ...)
+            return condition | body | else_body
+        if isinstance(ast_node, ast.IfExp):
             condition = cls.from_ast(ast_node.test)
             body = cls.from_ast(ast_node.body)
             else_body = cls.from_ast(ast_node.orelse) # elif is syntax sugar for else (if ...)
@@ -147,6 +154,8 @@ class VariableAccess:
             left = cls.from_ast(ast_node.left)
             right = cls.from_ast(ast_node.right)
             return left | right
+        if isinstance(ast_node, ast.BoolOp):
+            return cls.from_ast(ast_node.values)
         if isinstance(ast_node, ast.Compare):
             left = cls.from_ast(ast_node.left)
             comparators = cls.from_ast(ast_node.comparators)
@@ -154,6 +163,9 @@ class VariableAccess:
         
         raise NotImplementedError(f'Cannot parse {type(ast_node)} yet!')
 
+
+    def __eq__(self, other):
+        return self.reads == other.reads and self.writes == other.writes
 
 
     def __or__(self, other):
