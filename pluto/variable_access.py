@@ -85,18 +85,14 @@ class VariableAccess:
         
         if isinstance(ast_node, list):
             return functools.reduce(
-                cls.__or__, # TODO: left writes should be removed from right reads (name shadowing)
+                cls.__or__,
                 [cls.from_ast(sub_ast) for sub_ast in ast_node],
                 cls(reads=[], writes=[])
             )
         
         for node_type, children in node_children.items():
             if isinstance(ast_node, node_type):
-                return functools.reduce(
-                    cls.__or__,
-                    [cls.from_ast(getattr(ast_node, child)) for child in children],
-                    cls(reads=[], writes=[])
-                )
+                return cls.from_ast([getattr(ast_node, child) for child in children])
         
         raise NotImplementedError(f'Cannot parse {type(ast_node)} yet!')
 
@@ -111,7 +107,6 @@ class VariableAccess:
 
     def __repr__(self):
         return f'{type(self).__name__}(reads={list(self.reads)}, writes={list(self.writes)})'
-
 
 
 node_children = {
