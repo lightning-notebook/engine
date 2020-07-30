@@ -85,7 +85,7 @@ def test_base_types():
     assert VariableAccess.from_code('4') == VariableAccess(reads=[], writes=[])
     assert VariableAccess.from_code('3.4') == VariableAccess(reads=[], writes=[])
     assert VariableAccess.from_code('"asdf"') == VariableAccess(reads=[], writes=[])
-    # assert VariableAccess.from_code('f"{varname}"') == VariableAccess(reads=['varname'], writes=[])
+    assert VariableAccess.from_code('f"{varname}"') == VariableAccess(reads=['varname'], writes=[])
 
     assert VariableAccess.from_code('()') == VariableAccess(reads=[], writes=[])
     assert VariableAccess.from_code('(1, 2, 3)') == VariableAccess(reads=[], writes=[])

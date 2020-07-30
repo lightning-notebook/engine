@@ -131,6 +131,8 @@ node_children = {
     ast.List: ['elts'],
     ast.Set: ['elts'],
     ast.Dict: ['keys', 'values'],
+    ast.JoinedStr: ['values'],
+    ast.FormattedValue: ['value'],
     ast.Subscript: ['value', 'slice'],
     ast.Index: ['value'],
     ast.Slice: ['lower', 'upper', 'step'],
