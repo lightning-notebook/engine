@@ -1,3 +1,4 @@
+import ast
 from .variable_access import VariableAccess
 
 
@@ -6,16 +7,39 @@ class Cell:
         self.code = code
     
 
-    @property
-    def code(self):
-        return self._code
-    
+    def run(self, workspace, filename='Pluto cell'):
+        for mode in ['eval', 'exec']:
+            try:
+                parsed = ast.parse(self.code, filename=filename, mode=mode)
+                compiled = compile(self.code, filename=filename, mode=mode)
+            except SyntaxError as err:
+                syntax_error = err
+            else:
+                break
+        else:
+            self.variable_access = VariableAccess(reads=[], writes=[])
+            self.output = syntax_error
+            return
 
-    @code.setter
-    def code(self, value):
-        self._code = value
-        self.variable_access = VariableAccess.from_code(value)
+        self.variable_access = VariableAccess.from_ast(parsed)
+        if mode == 'eval':
+            self.output = eval(compiled, workspace)
+        elif mode == 'exec':
+            exec(compiled, workspace)
+            del workspace['__builtins__']
+            self.output = VariableValues.from_workspace(workspace, self.variable_access.writes)
     
 
     def __repr__(self):
-        return f'{type(self).__name__} with id {id(self)}:\n{self.code}'
+        return f'{self.code}'
+
+
+
+class VariableValues(dict):
+    @classmethod
+    def from_workspace(cls, workspace, variable_names):
+        return cls({var: workspace[var] for var in variable_names})
+
+
+    def __repr__(self):
+        return '\n'.join(f'{var} = {value}' for var, value in self.items())

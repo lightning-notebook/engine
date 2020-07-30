@@ -116,6 +116,7 @@ node_children = {
     ast.Constant: [],
     ast.Pass: [],
     type(None): [],
+    ast.Expression: ['body'],
     ast.Expr: ['value'],
     ast.Module: ['body'],
     ast.Import: ['names'],
