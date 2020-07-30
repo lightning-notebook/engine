@@ -98,8 +98,8 @@ def test_base_types():
     assert VariableAccess.from_code('[1, 2, x]') == VariableAccess(reads=['x'], writes=[])
 
     assert VariableAccess.from_code('set()') == VariableAccess(reads=['set'], writes=[])
-    # assert VariableAccess.from_code('{1, 2, 3}') == VariableAccess(reads=[], writes=[])
-    # assert VariableAccess.from_code('{1, 2, x}') == VariableAccess(reads=['x'], writes=[])
+    assert VariableAccess.from_code('{1, 2, 3}') == VariableAccess(reads=[], writes=[])
+    assert VariableAccess.from_code('{1, 2, x}') == VariableAccess(reads=['x'], writes=[])
     
     assert VariableAccess.from_code('{}') == VariableAccess(reads=[], writes=[])
     assert VariableAccess.from_code('{1: 2}') == VariableAccess(reads=[], writes=[])
@@ -126,11 +126,12 @@ def test_comprehensions():
     assert VariableAccess.from_code('[x ** 2 for x in y]') == VariableAccess(reads=['x', 'y'], writes=[])
     assert VariableAccess.from_code('[x for y in z for x in y]') == VariableAccess(reads=['x', 'y', 'z'], writes=[])
     assert VariableAccess.from_code('[x for x in y if x < 3]') == VariableAccess(reads=['x', 'y'], writes=[])
+    assert VariableAccess.from_code('[x + y for y in z]') == VariableAccess(reads=['x', 'y', 'z'], writes=[])
 
-    # assert VariableAccess.from_code('{x for x in y}') == VariableAccess(reads=['x', 'y'], writes=[])
-    # assert VariableAccess.from_code('{x ** 2 for x in y}') == VariableAccess(reads=['x', 'y'], writes=[])
-    # assert VariableAccess.from_code('{x for y in z for x in y}') == VariableAccess(reads=['x', 'y', 'z'], writes=[])
-    # assert VariableAccess.from_code('{x for x in y if x < 3}') == VariableAccess(reads=['x', 'y'], writes=[])
+    assert VariableAccess.from_code('{x for x in y}') == VariableAccess(reads=['x', 'y'], writes=[])
+    assert VariableAccess.from_code('{x ** 2 for x in y}') == VariableAccess(reads=['x', 'y'], writes=[])
+    assert VariableAccess.from_code('{x for y in z for x in y}') == VariableAccess(reads=['x', 'y', 'z'], writes=[])
+    assert VariableAccess.from_code('{x for x in y if x < 3}') == VariableAccess(reads=['x', 'y'], writes=[])
 
     assert VariableAccess.from_code('{x: z for x in y}') == VariableAccess(reads=['x', 'y', 'z'], writes=[])
     assert VariableAccess.from_code('{x: x ** 2 for x in y}') == VariableAccess(reads=['x', 'y'], writes=[])
