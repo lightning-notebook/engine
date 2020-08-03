@@ -52,3 +52,12 @@ def test_syntax_error():
     cell = Cell('x = +')
     cell.run({})
     assert isinstance(cell.output, SyntaxError)
+
+
+def test_depend():
+    a = Cell('a_var = b_var - 11')
+    b = Cell('b_var = 3')
+    assert a.depends_on(b)
+
+    a.code = 'a_var = c_var + 12'
+    assert not a.depends_on(b)

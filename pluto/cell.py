@@ -43,6 +43,10 @@ class Cell:
             self.output = VariableValues.from_workspace(workspace, self.variable_access.writes)
     
 
+    def depends_on(self, other):
+        return len(self.variable_access.reads & other.variable_access.writes) > 0
+    
+
     @property
     def filename(self):
         return f'Pluto cell'
