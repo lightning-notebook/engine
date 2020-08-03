@@ -2,6 +2,7 @@ import ast
 from .variable_access import VariableAccess
 
 
+
 class Cell:
     def __init__(self, code=''):
         self.code = code
@@ -44,6 +45,8 @@ class Cell:
     
 
     def depends_on(self, other):
+        if self is other:
+            return False
         return len(self.variable_access.reads & other.variable_access.writes) > 0
     
 

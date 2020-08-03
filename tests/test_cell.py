@@ -61,3 +61,8 @@ def test_depend():
 
     a.code = 'a_var = c_var + 12'
     assert not a.depends_on(b)
+
+
+def test_depend_self():
+    a = Cell('x = 11\nx = x + 1')
+    assert not a.depends_on(a)
