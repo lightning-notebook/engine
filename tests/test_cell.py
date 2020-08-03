@@ -1,5 +1,10 @@
 from pluto.cell import Cell
+from pluto.variable_access import VariableAccess
 
+
+def test_variable_access():
+    cell = Cell('x = y')
+    assert cell.variable_access == VariableAccess(reads=['y'], writes=['x'])
 
 
 def test_expression():
