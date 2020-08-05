@@ -10,11 +10,30 @@ class RunOrder:
 
     @classmethod
     def from_notebook(cls, notebook, roots=None):
-        entries = []
-        exits = []
+        if roots is None:
+            roots = notebook.cells
+        
+        discovered_cells = []
         errors = defaultdict(list)
 
-        def dfs(cell):
+        def discover_cells(starting_cell):
+            if starting_cell in discovered_cells:
+                return
+            discovered_cells.append(cell)
+            dependencies = cls.direct_dependencies(notebook, starting_cell)
+            conflicts = cls.conflicts(notebook, starting_cell)
+            for conflict in conflicts | {starting_cell}:
+                errors[conflict] += [MultipleAssignmentError(var) for var in cell.pulled_variables(conflict)]
+            for next_cell in dependencies | conflicts:
+                dfs(next_cell)
+        
+        for root in roots:
+            discover_cells(root)
+
+        entries = []
+        exits = []
+
+        def topological_scan(cell):
             if cell in exits:
                 return
             if cell in entries:
@@ -23,18 +42,13 @@ class RunOrder:
                 for cycle_member in cycle:
                     errors[cycle_member].append(CycleError(cycle))
                 return
-
             entries.append(cell)
-            dependencies = cls.direct_dependencies(notebook, cell)
-            conflicts = cls.conflicts(notebook, cell)
-            for conflict in conflicts | {cell}:
-                errors[conflict] += [MultipleAssignmentError(var) for var in cell.pulled_variables(conflict)]
-            for next_cell in dependencies | conflicts:
-                dfs(next_cell)
+            for next_cell in cls.direct_dependencies(notebook, cell):
+                topological_scan(next_cell)
             exits.append(cell)
         
-        for root in roots:
-            dfs(root)
+        for cell in discovered_cells:
+            topological_scan(cell)
         return cls(order=[c for c in reversed(exits) if c not in errors], errors=errors)
     
 
