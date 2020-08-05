@@ -1,10 +1,12 @@
+from uuid import uuid4
 import ast
 from .variable_access import VariableAccess
 
 
 
 class Cell:
-    def __init__(self, code=''):
+    def __init__(self, id=None, code=''):
+        self.id = id or uuid4()
         self.code = code
     
 
@@ -44,10 +46,24 @@ class Cell:
             self.output = VariableValues.from_workspace(workspace, self.variable_access.writes)
     
 
+    def pulled_variables(self, other):
+        return self.variable_access.reads & other.variable_access.writes
+    
+
     def depends_on(self, other):
         if self is other:
             return False
-        return len(self.variable_access.reads & other.variable_access.writes) > 0
+        return len(self.pulled_variables(other)) > 0
+    
+
+    def common_writes(self, other):
+        return self.variable_access.writes & other.variable_access.writes
+    
+
+    def conflicts_with(self, other):
+        if self is other:
+            return False
+        return len(self.common_writes(other)) > 0
     
 
     @property
@@ -57,6 +73,10 @@ class Cell:
 
     def __repr__(self):
         return f'{self.code}'
+    
+
+    def __hash__(self):
+        return self.id.int
 
 
 
