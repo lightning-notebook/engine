@@ -1,12 +1,13 @@
-from uuid import uuid4
 import ast
+from .identified import Identified
 from .variable_access import VariableAccess
 
 
 
-class Cell:
-    def __init__(self, id=None, code=''):
-        self.id = id or uuid4()
+class Cell(Identified):
+    '''A single cell. Can contain multiple lines of code.'''
+    def __init__(self, *, id=None, code=''):
+        super().__init__(id=id)
         self.code = code
     
 

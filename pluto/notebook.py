@@ -1,5 +1,10 @@
-class Notebook:
-    def __init__(self, cells=[]):
+from .identified import Identified
+
+
+class Notebook(Identified):
+    '''Represents a single .py file - can consist of multiple cells.'''
+    def __init__(self, *, id=None, cells=[]):
+        super().__init__(id=id)
         self.cells = cells
     
 
