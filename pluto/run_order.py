@@ -1,11 +1,11 @@
 from collections import defaultdict
-from .errors import MultipleAssignmentError, CycleError
+from .errors import NameConflictError, CycleError
 
 
 class RunOrder:
     def __init__(self, order, errors):
-        self.order = order
-        self.errors = errors
+        self.errors = {cell: cell_errors for cell, cell_errors in errors.items() if len(cell_errors) > 0}
+        self.order = [c for c in order if c not in self.errors]
     
 
     @classmethod
@@ -19,16 +19,18 @@ class RunOrder:
         def discover_cells(starting_cell):
             if starting_cell in discovered_cells:
                 return
-            discovered_cells.append(cell)
+            discovered_cells.append(starting_cell)
             dependencies = cls.direct_dependencies(notebook, starting_cell)
             conflicts = cls.conflicts(notebook, starting_cell)
-            for conflict in conflicts | {starting_cell}:
-                errors[conflict] += [MultipleAssignmentError(var) for var in cell.pulled_variables(conflict)]
+            conflict_vars = frozenset(var for conflict in conflicts for var in starting_cell.common_writes(conflict))
+            errors[starting_cell] += [NameConflictError(var) for var in conflict_vars]
             for next_cell in dependencies | conflicts:
-                dfs(next_cell)
+                discover_cells(next_cell)
         
         for root in roots:
             discover_cells(root)
+         # this helps stay as close to notebook order as possible:
+        discovered_cells.sort(key=lambda cell: notebook.cells.index(cell), reverse=True)
 
         entries = []
         exits = []
@@ -49,7 +51,7 @@ class RunOrder:
         
         for cell in discovered_cells:
             topological_scan(cell)
-        return cls(order=[c for c in reversed(exits) if c not in errors], errors=errors)
+        return cls(order=reversed(exits), errors=errors)
     
 
     @staticmethod
@@ -59,4 +61,4 @@ class RunOrder:
 
     @staticmethod
     def conflicts(notebook, cell):
-        return frozenset(c for c in notebook.cells if variable in c.conflicts_wth(cell))
+        return frozenset(c for c in notebook.cells if c.conflicts_with(cell))

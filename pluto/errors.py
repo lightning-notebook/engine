@@ -27,6 +27,10 @@ class NameConflictError(ReactivityError):
 
     def __repr__(self):
         return f'The variable `{self.errored_variable}` is assigned to in multiple cells.'
+    
+
+    def __eq__(self, other):
+        return self.errored_variable == other.errored_variable
 
 
 
@@ -39,3 +43,7 @@ class CycleError(ReactivityError):
 
     def __repr__(self):
         return 'These cells form a cycle:\n' + '\n\n'.join(repr(cell) for cell in self.cells_in_cycle)
+    
+
+    def __eq__(self, other):
+        return frozenset(self.cells_in_cycle) == frozenset(other.cells_in_cycle)
