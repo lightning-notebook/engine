@@ -11,9 +11,14 @@ class MultipleReactivityErrors(ReactivityError):
         self.errors = errors
     
 
+    @classmethod
+    def pack(cls, errors):
+        if len(errors) == 1:
+            return errors[0]
+        return cls(errors)
+    
+
     def __repr__(self):
-        if len(self.errors) == 1:
-            return repr(self.errors[0])
         return f'Multiple reactivity errors!\n' + '\n\n'.join(repr(error) for error in self.errors)
 
 
