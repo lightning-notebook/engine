@@ -59,3 +59,15 @@ class TestNotebook:
         notebook.run(cells={notebook.cells[0]: 'a = 17'})
         assert notebook.cells[0].output == {'a': 17}
         assert notebook.cells[1].output == {'b': 18}
+    
+
+    def test_error_propagation(self):
+        notebook = Notebook(cells=[
+            Cell(code='a = b + 0'),
+            Cell(code='b = a - 1'),
+            Cell(code='c = a + b')
+        ])
+        notebook.run()
+        assert notebook.cells[0].output == CycleError(notebook.cells[:2])
+        assert notebook.cells[1].output == CycleError(notebook.cells[:2])
+        assert isinstance(notebook.cells[2].output, NameError)

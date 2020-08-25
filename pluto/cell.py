@@ -40,11 +40,18 @@ class Cell(Identified):
         if self.mode == 'error':
             return
         elif self.mode == 'eval':
-            self.output = eval(self.compiled, workspace)
+            try:
+                self.output = eval(self.compiled, workspace)
+            except Exception as e:
+                self.output = e
         elif self.mode == 'exec':
-            exec(self.compiled, workspace)
+            try:
+                exec(self.compiled, workspace)
+            except Exception as e:
+                self.output = e
+            else:
+                self.output = VariableValues.from_workspace(workspace, self.variable_access.writes)
             del workspace['__builtins__']
-            self.output = VariableValues.from_workspace(workspace, self.variable_access.writes)
     
 
     def pulled_variables(self, other):
